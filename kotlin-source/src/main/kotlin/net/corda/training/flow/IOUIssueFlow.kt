@@ -14,6 +14,12 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.training.state.IOUState
 
+import net.corda.core.identity.CordaX500Name
+import net.corda.core.identity.Party
+import net.corda.training.contract.IOUContract
+import net.corda.core.contracts.Command
+import net.corda.core.contracts.StateAndContract
+
 /**
  * This is the flow which handles issuance of new IOUs on the ledger.
  * Gathering the counterparty's signature is handled by the [CollectSignaturesFlow].
@@ -25,10 +31,15 @@ import net.corda.training.state.IOUState
 class IOUIssueFlow(val state: IOUState) : FlowLogic<SignedTransaction>() {
     @Suspendable
     override fun call(): SignedTransaction {
-        // Placeholder code to avoid type error when running the tests. Remove before starting the flow task!
-        return serviceHub.signInitialTransaction(
-                TransactionBuilder(notary = null)
-        )
+        val notaryName: CordaX500Name = CordaX500Name("Notary","London","GB")
+        val commandData: IOUContract.Commands.Issue = IOUContract.Commands.Issue()
+        val ourCommand: Command<IOUContract.Commands.Issue> = Command(commandData, state.participants.map { it.owningKey }.toList() )
+        val specificNotary: Party = serviceHub.networkMapCache.getNotary(notaryName)!!
+        val txBuilder: TransactionBuilder = TransactionBuilder(specificNotary)
+        val ourOutput: StateAndContract = StateAndContract(state, IOUContract.IOU_CONTRACT_ID)
+        txBuilder.withItems(ourOutput, ourCommand)
+        txBuilder.verify(serviceHub)
+        return serviceHub.signInitialTransaction(txBuilder)
     }
 }
 
