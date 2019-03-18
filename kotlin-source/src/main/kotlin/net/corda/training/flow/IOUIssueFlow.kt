@@ -39,7 +39,11 @@ class IOUIssueFlow(val state: IOUState) : FlowLogic<SignedTransaction>() {
         val ourOutput: StateAndContract = StateAndContract(state, IOUContract.IOU_CONTRACT_ID)
         txBuilder.withItems(ourOutput, ourCommand)
         txBuilder.verify(serviceHub)
-        return serviceHub.signInitialTransaction(txBuilder)
+        val ptx: SignedTransaction = serviceHub.signInitialTransaction(txBuilder)
+        val participantFlowSessions: List<FlowSession> = (state.participants - ourIdentity).map { initiateFlow(it) }.toList()
+        val stx: SignedTransaction = subFlow(CollectSignaturesFlow(ptx, participantFlowSessions))
+        return subFlow(FinalityFlow(stx))
+
     }
 }
 
