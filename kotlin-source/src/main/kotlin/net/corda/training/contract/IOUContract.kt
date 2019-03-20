@@ -28,6 +28,7 @@ class IOUContract : Contract {
         // E.g
         // class DoSomething : TypeOnlyCommandData(), Commands
         class Issue : TypeOnlyCommandData(), Commands
+        class Transfer : TypeOnlyCommandData(), Commands
 
     }
 
@@ -40,16 +41,27 @@ class IOUContract : Contract {
          //requireThat {
             //...
          //}
-         val command = tx.commands.requireSingleCommand<IOUContract.Commands.Issue>()
-         requireThat {
-            "No inputs should be consumed when issuing an IOU." using tx.inputs.isEmpty()
-            "Only one output state should be created when issuing an IOU." using (tx.outputs.size == 1)
-            val state = tx.outputStates.single() as IOUState
-            "A newly issued IOU must have a positive amount." using (state.amount.quantity > 0)
-            "The lender and borrower cannot have the same identity." using (state.lender != state.borrower)
-            "Both lender and borrower together only may sign IOU issue transaction." using (command.signers.toSet() == state.participants.map {it.owningKey}.toSet() )
+         val command = tx.commands.requireSingleCommand<IOUContract.Commands>()
+         when (command.value) {
+            is Commands.Issue -> {
+                    requireThat {
+                        "No inputs should be consumed when issuing an IOU." using tx.inputs.isEmpty()
+                        "Only one output state should be created when issuing an IOU." using (tx.outputs.size == 1)
+                        val state = tx.outputStates.single() as IOUState
+                        "A newly issued IOU must have a positive amount." using (state.amount.quantity > 0)
+                        "The lender and borrower cannot have the same identity." using (state.lender != state.borrower)
+                        "Both lender and borrower together only may sign IOU issue transaction." using (command.signers.toSet() == state.participants.map {it.owningKey}.toSet() )
+                    }
+            }
+            is Commands.Transfer -> {
+                requireThat {
+                    "Only one input state should be consumed when transfering an IOU" using (tx.inputs.size == 1)
+                    "Only one output state should be created when transfering an IOU" using (tx.outputs.size == 1)
+                }
+            }
 
-         }
- 
+        }
+
+
     }
 }
