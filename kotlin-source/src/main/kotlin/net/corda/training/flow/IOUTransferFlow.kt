@@ -45,7 +45,11 @@ class IOUTransferFlow(val linearId: UniqueIdentifier, val newLender: Party): Flo
         val inStateAndRef: StateAndRef<IOUState> = result.states.single()
         val inState: IOUState = inStateAndRef.state.data
         val newState: IOUState = inState.copy().withNewLender(newLender)
-        //command
+        //check initated by current lender
+        if (inState.lender !=  ourIdentity) 
+            throw IllegalArgumentException("flow must be initiated by the current lender")
+
+       //command
         val commandData: IOUContract.Commands.Transfer = IOUContract.Commands.Transfer()
         val requiredSigners: List<PublicKey> = ( inState.participants.map { it.owningKey }.toSet() + newState.participants.map { it.owningKey }.toSet() ).toList()
         val myCommand: Command<IOUContract.Commands.Transfer> = Command(commandData, requiredSigners)
