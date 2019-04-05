@@ -125,18 +125,18 @@ class IOUTransferFlowTests {
      * Check that an [IOUState] cannot be transferred to the same lender.
      * TODO: You shouldn't have to do anything additional to get this test to pass. Belts and Braces!
      */
-//    @Test
-//    fun iouCannotBeTransferredToSameParty() {
-//        val lender = a.info.chooseIdentityAndCert().party
-//        val borrower = b.info.chooseIdentityAndCert().party
-//        val stx = issueIou(IOUState(10.POUNDS, lender, borrower))
-//        val inputIou = stx.tx.outputs.single().data as IOUState
-//        val flow = IOUTransferFlow(inputIou.linearId, lender)
-//        val future = a.startFlow(flow)
-//        mockNetwork.runNetwork()
-//        // Check that we can't transfer an IOU to ourselves.
-//        assertFailsWith<TransactionVerificationException> { future.getOrThrow() }
-//    }
+    @Test
+    fun iouCannotBeTransferredToSameParty() {
+        val lender = a.info.chooseIdentityAndCert().party
+        val borrower = b.info.chooseIdentityAndCert().party
+        val stx = issueIou(IOUState(10.POUNDS, lender, borrower))
+        val inputIou = stx.tx.outputs.single().data as IOUState
+        val flow = IOUTransferFlow(inputIou.linearId, lender)
+        val future = a.startFlow(flow)
+        mockNetwork.runNetwork()
+        // Check that we can't transfer an IOU to ourselves.
+        assertFailsWith<TransactionVerificationException> { future.getOrThrow() }
+    }
 
     /**
      * Task 4.

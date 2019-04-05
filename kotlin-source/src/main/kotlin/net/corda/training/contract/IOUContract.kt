@@ -59,9 +59,9 @@ class IOUContract : Contract {
                     "An IOU transfer transaction should only create one output state." using (tx.outputs.size == 1)
                     val outState = tx.outputStates.single() as IOUState
                     val checkState = outState.copy()
-                    val inState = (tx.inputStates.single() as IOUState)
+                    val inState = tx.inputStates.single() as IOUState
                     "Only the lender property may change." using (inState == checkState.withNewLender(inState.lender) )
-                    "The lender property must change in a transfer." using (inState.lender != (tx.outputStates.single() as IOUState).lender)
+                    "The lender property must change in a transfer." using (inState.lender != outState.lender)
                     "The borrower, old lender and new lender only must sign an IOU transfer transaction" using (command.signers.toSet() == ( outState.participants.map {it.owningKey}.toSet() + inState.participants.map {it.owningKey}.toSet() ) )
                 }
             }

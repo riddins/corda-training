@@ -60,6 +60,7 @@ class IOUTransferFlow(val linearId: UniqueIdentifier, val newLender: Party): Flo
         val newStateAndContract: StateAndContract = StateAndContract(newState, IOUContract.IOU_CONTRACT_ID)
         val txBuilder: TransactionBuilder = TransactionBuilder(specificNotary)
         txBuilder.withItems(inStateAndRef, newStateAndContract, myCommand)
+        txBuilder.verify(serviceHub)
         // Placeholder code to avoid type error when running the tests. Remove before starting the flow task!
         return serviceHub.signInitialTransaction(txBuilder)
     }
